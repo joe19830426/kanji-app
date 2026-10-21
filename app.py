@@ -4,7 +4,7 @@
     pip install streamlit anthropic
     streamlit run app.py
 
-設定 (.streamlit/secrets.toml または環境変数)
+設定 (.streamlit/secrets.toml)
     APP_PASSWORD      = "amida"
     ANTHROPIC_API_KEY = "sk-ant-..."
 """
