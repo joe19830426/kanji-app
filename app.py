@@ -6,7 +6,7 @@
 
 設定 (.streamlit/secrets.toml)
     APP_PASSWORD      = "amida"
-    ANTHROPIC_API_KEY = "sk-ant-..."
+    ANTHROPIC_API_KEY = "sk-ant-001"
 """
 
 import hmac
