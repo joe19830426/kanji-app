@@ -22,7 +22,7 @@ import re
 import streamlit as st
 import streamlit.components.v1 as components
 
-MODEL = "claude-sonnet-5-5"
+MODEL = "claude-3-7-sonnet-20250219"
 
 PUBLISHERS = ["光村図書", "東京書籍", "教育出版", "学校図書", "三省堂", "その他"]
 TERMS = ["1学期", "2学期", "3学期"]
