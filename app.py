@@ -5,7 +5,7 @@
     streamlit run app.py
 
 設定 (.streamlit/secrets.toml または環境変数):
-    APP_PASSWORD      = "amida"   # 未設定なら認証なしで動作
+    APP_PASSWORD      = "好きなパスワード"   # 未設定なら認証なしで動作
     ANTHROPIC_API_KEY = "sk-ant-..."         # 問題文の自動作成・画像/PDFの読み取りに使用
 """
 
@@ -45,6 +45,79 @@ GRADE_KANJI = {
     5: "圧囲移因永営衛易益液演応往桜可仮価河過快解格確額刊幹慣眼紀基寄規喜技義逆久旧救居許境均禁句型経潔件険検限現減故個護効厚耕航鉱構興講告混査再災妻採際在財罪殺雑酸賛士支史志枝師資飼示似識質舎謝授修述術準序招証象賞条状常情織職制性政勢精製税責績接設絶祖素総造像増則測属率損貸態団断築貯張停提程適統堂銅導得毒独任燃能破犯判版比肥非費備評貧布婦武復複仏粉編弁保墓報豊防貿暴脈務夢迷綿輸余容略留領歴",
     6: "胃異遺域宇映延沿恩我灰拡革閣割株干巻看簡危机揮貴疑吸供胸郷勤筋系敬警劇激穴券絹権憲源厳己呼誤后孝皇紅降鋼刻穀骨困砂座済裁策冊蚕至私姿視詞誌磁射捨尺若樹収宗就衆従縦縮熟純処署諸除承将傷障蒸針仁垂推寸盛聖誠舌宣専泉洗染銭善奏窓創装層操蔵臓存尊退宅担探誕段暖値宙忠著庁頂腸潮賃痛敵展討党糖届難乳認納脳派拝背肺俳班晩否批秘俵腹奮並陛閉片補暮宝訪亡忘棒枚幕密盟模訳郵優預幼欲翌乱卵覧裏律臨朗論",
 }
+
+# ---------------------------------------------------------------------------
+# 画数表（学年別漢字配当表の「画数から探す」表に基づく）と、学期ごとの目安
+#   学期ごとの新出漢字は教科書会社・学校によって異なり、公的な割り当てはありません。
+#   ここでは学年の漢字を「画数の少ない順」に3等分した“目安”として扱います。
+# ---------------------------------------------------------------------------
+STROKE_TABLE = {
+    1: {1: "一", 2: "九七十二人入八力", 3: "下口三山子女小上夕千川大土", 4: "円王火月犬五手水中天日文木六",
+        5: "右玉左四出正生石田白本目立", 6: "気休糸字耳先早竹虫年百名", 7: "花貝見車赤足村男町",
+        8: "雨学金空青林", 9: "音草", 10: "校", 12: "森"},
+    2: {2: "刀", 3: "丸弓工才万", 4: "引牛元戸午公今止少心切太内父分方毛友", 5: "外兄古広市矢台冬半母北用",
+        6: "羽回会交光考行合寺自色西多地池当同肉米毎", 7: "何角汽近形言谷作社図声走体弟売麦来里",
+        8: "画岩京国姉知長直店東歩妹明門夜", 9: "科海活計後思室首秋春食星前茶昼点南風",
+        10: "夏家記帰原高紙時弱書通馬", 11: "魚強教黄黒細週雪船組鳥野理", 12: "雲絵間場晴朝答道買番",
+        13: "園遠楽新数電話", 14: "歌語算読聞鳴", 15: "線", 16: "親頭", 18: "顔曜"},
+    3: {2: "丁", 4: "化区反予", 5: "央去号皿仕写主申世他打代皮氷平由礼",
+        6: "安曲血向死次式守州全有羊両列", 7: "医究局君決住助身対投豆坂返役",
+        8: "委育泳岸苦具幸使始事実者取受所昔注定波板表服物放味命油和",
+        9: "屋界客急級係研県指持拾重昭乗神相送待炭柱追度畑発美秒品負面洋",
+        10: "員院荷起宮庫根酒消真息速庭島配倍病勉流旅", 11: "悪球祭終習宿商章深進族第帳笛転都動部問",
+        12: "飲運温開階寒期軽湖港歯集暑勝植短着湯登等童悲筆遊葉陽落", 13: "暗意感漢業詩想鉄農福路",
+        14: "駅銀鼻様緑練", 15: "横談調箱", 16: "館橋整薬", 18: "題"},
+    4: {4: "欠氏井不夫", 5: "以加功札司失必付辺包末未民令", 6: "衣印各共好成争仲兆伝灯老",
+        7: "位改完岐希求芸佐材児初臣折束沖低努阪兵別利良冷労",
+        8: "英岡果芽官季泣協径固刷参治周松卒底的典奈念府阜法牧例",
+        9: "茨栄軍建香昨祝城信省浅単栃飛変便約勇要", 10: "案害挙訓郡候差残借笑席倉孫帯徒特梅浴料連",
+        11: "貨械健康菜埼崎産鹿唱清巣側梨敗票副望陸", 12: "媛賀街覚給極景結最散滋順焼然隊達博飯富満無量",
+        13: "愛塩群試辞照節戦続置働", 14: "管関旗漁熊察種静説徳", 15: "億課潟器縄選熱標養輪",
+        16: "機積録", 18: "観験類", 19: "願鏡", 20: "議競"},
+    5: {3: "久士", 4: "支比仏", 5: "圧永可刊旧句史示犯布弁", 6: "因仮件再在団任",
+        7: "囲応快技均告災志似序条状判防余", 8: "易往価河居効妻枝舎述招制性毒版肥非武",
+        9: "紀逆型限故厚査政祖則独保迷", 10: "益桜格個耕航財殺師修素造能破粉脈容留",
+        11: "移液眼基寄規救許経険現混採授術常情責接設率断張停堂得貧婦務略",
+        12: "営過喜検減証象税絶測属貸貯提程統費備評復報貿", 13: "解幹義禁鉱罪資飼準勢損墓豊夢",
+        14: "演慣境構際雑酸精製総像増態適銅複綿領歴", 15: "確潔賛質賞導編暴", 16: "衛興築燃輸",
+        17: "講謝績", 18: "額織職", 19: "識", 20: "護"},
+    6: {3: "干己寸亡", 4: "尺収仁片", 5: "穴冊処庁幼", 6: "宇灰危机吸后至舌存宅", 7: "我系孝困私否批忘乱卵",
+        8: "延沿拡供券呼刻若宗承垂担宙忠届乳拝並宝枚", 9: "胃映革巻看皇紅砂姿宣専泉洗染奏退段派背肺律",
+        10: "恩株胸降骨座蚕射従純除将針値展討党納俳班秘俵陛朗", 11: "異域郷済視捨推盛窓探著頂脳閉訪密訳郵欲翌",
+        12: "割揮貴勤筋敬裁策詞就衆善創装尊痛晩補棒", 13: "絹源署傷蒸聖誠暖腸賃腹幕盟預裏",
+        14: "閣疑誤穀誌磁障銭層認暮模", 15: "遺劇権熟諸蔵誕潮敵論", 16: "激憲鋼樹縦操糖奮",
+        17: "厳縮優覧", 18: "簡難臨", 19: "警臓"},
+}
+
+KANJI_STROKES = {c: n for tbl in STROKE_TABLE.values() for n, cs in tbl.items() for c in cs}
+
+RANGE_TERM = "この学期に習う漢字（目安）"
+RANGE_UNTIL = "この学期までに習う漢字（目安）"
+RANGE_ALL = "学年すべて"
+
+
+def term_kanji(grade: int, term_idx: int):
+    """学年の漢字を画数の少ない順に3等分し、学期ごとの目安にする（配当表の順で返す）。"""
+    chars = list(GRADE_KANJI[grade])
+    order = sorted(range(len(chars)), key=lambda i: (KANJI_STROKES.get(chars[i], 99), i))
+    rank = {chars[i]: r for r, i in enumerate(order)}
+    k = len(chars)
+    b1, b2 = round(k / 3), round(k * 2 / 3)
+    lo, hi = [(0, b1), (b1, b2), (b2, k)][term_idx]
+    return [c for c in chars if lo <= rank[c] < hi]
+
+
+def kanji_range(grade: int, term: str, how: str):
+    ti = TERMS.index(term)
+    if how == RANGE_ALL:
+        return list(GRADE_KANJI[grade])
+    if how == RANGE_UNTIL:
+        s = set()
+        for t in range(ti + 1):
+            s |= set(term_kanji(grade, t))
+        return [c for c in GRADE_KANJI[grade] if c in s]
+    return term_kanji(grade, ti)
+
 
 # ---------------------------------------------------------------------------
 # サンプル問題（APIキー未設定時の代替・補充用） (答えの語, よみ, 例文)
@@ -149,10 +222,19 @@ def sample_pool(grade):
 # ---------------------------------------------------------------------------
 # 認証（APP_PASSWORD を設定した場合のみ）
 # ---------------------------------------------------------------------------
+def secret(name: str) -> str:
+    """secrets.toml → 環境変数 の順で設定値を読む（secrets.toml が無くても落ちない）"""
+    try:
+        v = st.secrets.get(name, "")
+    except Exception:
+        v = ""
+    return str(v or os.environ.get(name, "")).strip()
+
+
 def check_password() -> bool:
     if st.session_state.get("authenticated"):
         return True
-    expected = st.secrets.get("APP_PASSWORD", os.environ.get("APP_PASSWORD", ""))
+    expected = secret("APP_PASSWORD")
     if not expected:
         return True
     st.title("🔒 漢字小テスト作成")
@@ -172,7 +254,7 @@ def check_password() -> bool:
 # Claude API
 # ---------------------------------------------------------------------------
 def api_key() -> str:
-    return str(st.secrets.get("ANTHROPIC_API_KEY", os.environ.get("ANTHROPIC_API_KEY", ""))).strip()
+    return secret("ANTHROPIC_API_KEY")
 
 
 def call_claude(content, max_tokens=8000) -> str:
@@ -180,20 +262,35 @@ def call_claude(content, max_tokens=8000) -> str:
     key = api_key()
     if not key:
         raise RuntimeError("ANTHROPIC_API_KEY が設定されていません。")
-    client = anthropic.Anthropic(api_key=key)
+    client = anthropic.Anthropic(api_key=key, timeout=150.0, max_retries=1)   # 無限に待たない
     resp = client.messages.create(model=MODEL, max_tokens=max_tokens,
                                   messages=[{"role": "user", "content": content}])
     return "".join(b.text for b in resp.content if b.type == "text")
 
 
 def parse_json_list(text: str):
-    m = re.search(r"\[.*\]", text, re.DOTALL)
-    if not m:
-        raise ValueError("AIの応答からJSONを取得できませんでした。")
-    return json.loads(m.group(0))
+    """AIの応答から {...} を1件ずつ読み取る。前置き・コードブロック・途中切れ・壊れた1件があっても、
+    読めたものだけを返す（文中の [漢|かん] の ] に惑わされない）。"""
+    dec = json.JSONDecoder()
+    items, pos = [], 0
+    while True:
+        i = text.find("{", pos)
+        if i < 0:
+            break
+        try:
+            obj, end = dec.raw_decode(text, i)
+        except ValueError:
+            pos = i + 1
+            continue
+        if isinstance(obj, dict):
+            items.append(obj)
+        pos = end
+    if not items:
+        raise ValueError("AIの応答から問題を読み取れませんでした。もう一度お試しください。")
+    return items
 
 
-def generate_with_claude(grade, kanji, n):
+def generate_with_claude(grade, kanji, n, exclude=None):
     prompt = f"""小学{grade}年生向けの漢字書き取りテストの問題を、ちょうど{n}問作ってください。
 出題に使う漢字（この中から選ぶ）: {kanji}
 
@@ -206,6 +303,8 @@ def generate_with_claude(grade, kanji, n):
 6. 出題漢字がなるべく偏らないようにし、同じ語を重複させない。易しい問題から順に並べる。
 JSON配列だけを出力（説明やコードブロックは不要）:
 [{{"kanji":"出題漢字1字","word":"答えの語","reading":"ひらがな","sentence":"例文"}}]"""
+    if exclude:
+        prompt += "\n\n次の語はすでに作成済みなので使わないこと: " + "、".join(exclude)
     rows = parse_json_list(call_claude(prompt))
     allowed = set("".join(GRADE_KANJI[g] for g in range(1, grade + 1)))
     out = []
@@ -287,15 +386,93 @@ def read_attachment(f):
 
 
 # ---------------------------------------------------------------------------
+# 添付プリントの文の作り変え・ルビ付け（答えの語・よみは絶対に変えない）
+# ---------------------------------------------------------------------------
+THEMES = ["学校", "家", "公園", "町", "季節", "家族", "友だち", "食べ物", "動物", "天気",
+          "スポーツ", "旅行", "係の仕事", "図書室", "のりもの", "夏休み", "運動会"]
+
+
+def plain_text(sentence: str) -> str:
+    """[漢|かん] 形式のルビ指定を外した文"""
+    return RUBY_RE.sub(lambda m: m.group(1), sentence)
+
+
+def rewrite_sentences(items, grade, seed):
+    """答えの語（漢字・送り仮名・よみ）は元のまま、例文だけをAIで作り直す。(items, 失敗数) を返す。"""
+    rng = random.Random(seed)
+    themes = "・".join(rng.sample(THEMES, 3))
+    allowed = set("".join(GRADE_KANJI[g] for g in range(1, grade + 1)))
+    for e in items:
+        allowed |= {c for c in e["word"] if KANJI_RE.match(c)}
+    payload = [{"i": i, "word": e["word"], "reading": e.get("reading", ""),
+                "old": e["sentence"].replace("{W}", e["word"])} for i, e in enumerate(items)]
+    prompt = f"""小学{grade}年生向けの漢字テストの例文を作り直してください。
+各問には「答えの語」があります。答えの語は絶対に変えず、例文だけを新しく作ります。
+
+【ルール】
+1. 新しい例文では、答えの語が入る位置を {{W}} と書き、{{W}} は1回だけ使う。答えの語そのもの（漢字・送り仮名・活用形）は変えない。
+   例：答えが「任せる」なら {{W}} は「任せる」の形で使う（「任せた」「任せて」にしない）。
+   例：答えが「土」なら、{{W}}の前後に字を足して「土地」「土曜」のような別の語にしない。
+2. 答えの語を {{W}} 以外の場所に書かない。
+3. 元の文（old）とは違う場面・言い回しにする。今回の場面のヒント：{themes}。問ごとに変化をつけ、同じ文型を続けない。
+4. {grade}年生が読める自然な短い文（答えを除いて18字以内）。句点（。）で終える。
+5. 文中の答え以外の漢字は、小学{grade}年生までに習う漢字だけを使い、[漢字|ひらがなの読み] の形で読みを付ける
+   （例：[先生|せんせい]と{{W}}。）。習っていない漢字はひらがなで書く。
+JSON配列だけを出力（説明やコードブロックは不要）: [{{"i":0,"sentence":"..."}}]
+
+入力: {json.dumps(payload, ensure_ascii=False)}"""
+    rows = parse_json_list(call_claude(prompt))
+    out = [dict(e) for e in items]
+    for r in rows:
+        try:
+            i, s = int(r["i"]), str(r["sentence"]).strip()
+        except Exception:
+            continue
+        if not (0 <= i < len(items)) or s.count("{W}") != 1:
+            continue
+        word = items[i]["word"]
+        text = plain_text(s.replace("{W}", ""))
+        if word in text:                                   # 答えの語が別の場所にも出ている
+            continue
+        if any(KANJI_RE.match(c) and c not in allowed for c in text):   # 未習の漢字
+            continue
+        out[i]["sentence"] = s                             # word / reading は元のまま（AIの出力は使わない）
+    changed = sum(1 for a, b in zip(items, out) if a["sentence"] != b["sentence"])
+    return out, len(items) - changed
+
+
+def annotate_ruby(items):
+    """ルビ指定のない文に、AIで [漢字|よみ] を付ける。文字そのものが変わった場合は元の文を使う。"""
+    todo = [(i, e) for i, e in enumerate(items)
+            if "[" not in e["sentence"] and KANJI_RE.search(e["sentence"].replace("{W}", ""))]
+    if not todo or not api_key():
+        return items
+    payload = [{"i": i, "sentence": e["sentence"]} for i, e in todo]
+    prompt = f"""次の各文の {{W}} 以外の漢字に、ルビ用の読みを [漢字|ひらがなの読み] の形で付けてください。
+熟語は1語まとめて付ける（例：[先生|せんせい]）。{{W}} の部分と、文の文字は一切変更・追加・削除しない。
+JSON配列だけを出力（説明やコードブロックは不要）: [{{"i":0,"sentence":"..."}}]
+
+入力: {json.dumps(payload, ensure_ascii=False)}"""
+    out = [dict(e) for e in items]
+    for r in parse_json_list(call_claude(prompt)):
+        try:
+            i, s = int(r["i"]), str(r["sentence"])
+        except Exception:
+            continue
+        if 0 <= i < len(items) and plain_text(s) == items[i]["sentence"]:
+            out[i]["sentence"] = s
+    return out
+
+
+# ---------------------------------------------------------------------------
 # 問題の作成
 # ---------------------------------------------------------------------------
-def build_items(grade, selected, n, seed, use_random):
-    """(items, notes) を返す。"""
+def build_items(grade, pool, selected, n, seed, use_random):
+    """学年の漢字から問題を作る。(items, notes) を返す。"""
     rng = random.Random(seed)
     notes = []
-    chars = list(GRADE_KANJI[grade])
     if use_random:
-        pool_k = rng.sample(chars, min(n, len(chars)))
+        pool_k = rng.sample(pool, min(n, len(pool)))
     else:
         pool_k = list(selected)
         if len(pool_k) > n:
@@ -305,11 +482,20 @@ def build_items(grade, selected, n, seed, use_random):
     items = []
     if api_key():
         try:
-            items = generate_with_claude(grade, kanji, n)
+            for _ in range(3):                      # 足りない分は、作成済みの語を除いて追加で依頼する
+                need = n - len(items)
+                if need <= 0:
+                    break
+                new = generate_with_claude(grade, kanji, need, exclude=[e["word"] for e in items])
+                have = {e["word"] for e in items}
+                added = [e for e in new if e["word"] not in have]
+                if not added:
+                    break
+                items += added
             if len(items) < n:
-                notes.append(f"AIが作成できた問題は{len(items)}問でした。")
+                notes.append(f"AIが作成できた問題は{len(items)}問でした。残りは内蔵のサンプル問題で補います。")
         except Exception as ex:
-            notes.append(f"AIによる問題作成に失敗したため、サンプル問題を使用します（{ex}）")
+            notes.append(f"AIによる問題作成の途中で失敗しました（{ex}）。足りない分はサンプル問題で補います。")
     else:
         notes.append("ANTHROPIC_API_KEY が未設定のため、内蔵のサンプル問題から作成しました。")
 
@@ -328,6 +514,53 @@ def build_items(grade, selected, n, seed, use_random):
     if len(items) < n:
         notes.append(f"問題数が足りず、{len(items)}問のプリントになりました。")
     return items[:n], notes
+
+
+def build_from_attachment(att, n, use_all, shuffle, rewrite, grade, seed, ruby):
+    """添付プリントの問題から作る。並びはそのまま／ランダム、文は元のまま／作り変え。"""
+    rng = random.Random(seed)
+    notes = []
+    items = [dict(e) for e in att]
+    if shuffle:
+        rng.shuffle(items)
+    limit = min(len(items), 50) if use_all else min(n, len(items))
+    if use_all and len(items) > 50:
+        notes.append(f"添付プリントは{len(items)}問ありますが、プリントに収まる50問までを使います。")
+    items = items[:limit]
+    notes.append(f"添付プリントの問題を{len(items)}問使いました"
+                 f"（{'ランダムな並び' if shuffle else 'プリント通りの並び'}）。")
+    if not use_all and n > len(att):
+        notes.append(f"添付プリントの問題数（{len(att)}問）が、選んだ問題数より少ないため、{len(att)}問になりました。")
+
+    if rewrite:
+        if not api_key():
+            notes.append("ANTHROPIC_API_KEY が未設定のため、文は作り変えず元の文を使いました。")
+        else:
+            try:
+                items, failed = rewrite_sentences(items, grade, seed)
+                notes.append("答えの漢字はそのまま、文を作り直しました。"
+                             + (f"（{failed}問は条件に合う文にできず、元の文を使っています）" if failed else ""))
+            except Exception as ex:
+                notes.append(f"文の作り直しに失敗したため、元の文を使いました（{ex}）")
+    if ruby and api_key():
+        try:
+            items = annotate_ruby(items)
+        except Exception as ex:
+            notes.append(f"ルビの自動付けに失敗しました（{ex}）")
+    elif ruby:
+        notes.append("ルビを自動で付けるには ANTHROPIC_API_KEY が必要です（添付の文にルビ指定がある場合のみ表示されます）。")
+    return items, notes
+
+
+def load_attachment(up):
+    """添付ファイルの読み取り結果をキャッシュして、再作成のたびにAIを呼ばないようにする。"""
+    key = (up.name, up.size)
+    cache = st.session_state.get("att_cache")
+    if cache and cache["key"] == key:
+        return cache["items"]
+    items = read_attachment(up)
+    st.session_state["att_cache"] = {"key": key, "items": items}
+    return items
 
 
 # ---------------------------------------------------------------------------
@@ -413,12 +646,37 @@ rt{font-size:.5em;line-height:1}
 """
 
 JS = """
+function fitSheets(){
+ var list=document.querySelectorAll('.qs');
+ for(var q=0;q<list.length;q++){
+  var qs=list[q],cells=qs.querySelectorAll('.q');
+  if(!cells.length||qs.clientHeight<20)continue;
+  var bx0=parseFloat(qs.getAttribute('data-bx')),fs0=parseFloat(qs.getAttribute('data-fs'));
+  var hi=parseFloat(qs.getAttribute('data-max')),lo=0.5;
+  var apply=function(s){
+   qs.style.setProperty('--bx',(bx0*s).toFixed(2)+'mm');
+   qs.style.setProperty('--fs',(fs0*(s<=1?Math.pow(s,0.6):1+(s-1)*0.2)).toFixed(2)+'mm');};
+  var fits=function(){
+   for(var i=0;i<cells.length;i++){var c=cells[i];
+    if(c.scrollWidth>c.clientWidth+1||c.scrollHeight>c.clientHeight+1)return false;}
+   return true;};
+  apply(hi);
+  if(!fits()){
+   for(var k=0;k<14;k++){var mid=(lo+hi)/2;apply(mid);if(fits())lo=mid;else hi=mid;}
+   apply(lo);
+  }
+  qs.setAttribute('data-fit',qs.style.getPropertyValue('--bx'));
+ }
+}
 function fit(){var s=document.querySelector('.sheet'),c=document.querySelector('.scaler');
+ if(!s||!s.offsetWidth)return;
  c.style.transform='none';var w=s.offsetWidth+16,k=Math.min(1,window.innerWidth/w);
  c.style.transform='scale('+k+')';}
-window.addEventListener('load',fit);window.addEventListener('resize',fit);
+function all(){fitSheets();fit();}
+window.addEventListener('load',all);window.addEventListener('resize',all);
+if(document.fonts&&document.fonts.ready){document.fonts.ready.then(all);}
 window.onbeforeprint=function(){document.querySelector('.scaler').style.transform='none'};
-window.onafterprint=fit;
+window.onafterprint=all;
 """
 
 RUBY_RE = re.compile(r"\[([^\]|]+)\|([^\]]+)\]")
@@ -448,7 +706,14 @@ def answer_html(e, answer: bool) -> str:
 def text_units(text: str, ruby: bool) -> str:
     """文を1文字（ルビ付き語は1まとまり）ずつの部品にする。折り返しを正確に制御するため。"""
     def chars(t):
-        return "".join(f'<span class="u">{html.escape(c, quote=False)}</span>' for c in t)
+        # 句読点・閉じ括弧は直前の文字と一緒に折り返す（行頭に孤立させない）
+        units = []
+        for c in t:
+            if units and c in "。、，．）」』！？":
+                units[-1] += c
+            else:
+                units.append(c)
+        return "".join(f'<span class="u">{html.escape(u, quote=False)}</span>' for u in units)
     out, pos = [], 0
     for m in RUBY_RE.finditer(text):
         out.append(chars(text[pos:m.start()]))
@@ -477,29 +742,31 @@ def cell_html(i, e, row, col, help_on, ruby, answer) -> str:
 
 
 def layout_for(n):
-    """(行数, 各行の問題数リスト, 解答枠サイズmm, 文字サイズmm)"""
-    bands = 1 if n <= 6 else 2 if n <= 20 else 3 if n <= 30 else 4
-    base, extra = divmod(n, bands)
-    counts = [base + 1] * extra + [base] * (bands - extra)
-    if n <= 10:
-        bx, fs = 13, 5.2
+    """(各行の問題数リスト, 解答枠mm, 文字mm)
+    枠の大きさは“ふつう”の基準値。実際の大きさは、JSが枠に収まる最大まで自動で調整する。"""
+    if n <= 5:
+        rows, bx, fs = 1, 20.0, 6.0
+    elif n <= 10:
+        rows, bx, fs = 2, 18.0, 5.4
     elif n <= 20:
-        bx, fs = 12, 4.8
+        rows, bx, fs = 3, 14.5, 4.6
     elif n <= 30:
-        bx, fs = 11.5, 4.4
+        rows, bx, fs = 3, 12.5, 4.2
     elif n <= 40:
-        bx, fs = 11, 4.2
+        rows, bx, fs = 5, 10.5, 3.8
     else:
-        bx, fs = 9.0, 3.5
-    return bands, counts, bx, fs
+        rows, bx, fs = 4, 9.5, 3.5          # 50問は 13・13・12・12 の4行
+    base, extra = divmod(n, rows)
+    counts = [base + 1] * extra + [base] * (rows - extra)
+    return counts, bx, fs
 
 
-def sheet_html(items, title, kind, answer, publisher, term) -> str:
+def sheet_html(items, title, kind, answer, publisher, term, max_scale=1.0) -> str:
     help_on = kind in ("お助け（2画ヒント）", "お助け＋ルビ")
     ruby = kind in ("ルビ付き", "お助け＋ルビ")
     n = len(items)
-    bands, counts, bx, fs = layout_for(n)
-    cols = max(counts)
+    counts, bx, fs = layout_for(n)
+    bands, cols = len(counts), max(counts)
     lh = 2.05 if ruby else 1.6
     pts = f"{100 / n:.1f}".rstrip("0").rstrip(".")
 
@@ -525,7 +792,8 @@ def sheet_html(items, title, kind, answer, publisher, term) -> str:
         '</div>'
     )
     return (f'<section class="sheet"><div class="body">{names}'
-            f'<div class="qs" style="--fs:{fs}mm;--bx:{bx}mm;--lh:{lh};'
+            f'<div class="qs" data-bx="{bx}" data-fs="{fs}" data-max="{max_scale}" '
+            f'style="--fs:{fs}mm;--bx:{bx}mm;--lh:{lh};'
             f'grid-template-columns:repeat({cols},1fr);grid-template-rows:repeat({bands},1fr)">'
             f'{"".join(cells)}</div></div></section>')
 
@@ -543,23 +811,27 @@ def document_html(sheets, paper) -> str:
 # ---------------------------------------------------------------------------
 # 画面
 # ---------------------------------------------------------------------------
+SIZES = {"自動（学年に合わせる）": None, "ふつう": 1.0, "大きめ": 1.2, "特大": 1.4}
+AUTO_SCALE = {1: 1.4, 2: 1.3, 3: 1.2, 4: 1.1, 5: 1.0, 6: 1.0}
+ORDERS = ["プリント通りの並び", "毎回ランダムに並び替える"]
+COUNT_MODES = ["添付プリントの全問題を使う", "上で選んだ問題数に合わせる"]
+PICK_MODES = ["一覧から選ぶ", "この範囲からランダムに選ぶ"]
+
+
 def set_sel(key, chars):
     st.session_state[key] = list(chars)
 
 
-def kanji_picker(grade):
-    chars = list(GRADE_KANJI[grade])
-    key = f"sel_{grade}"
-    st.session_state.setdefault(key, [])
+def kanji_picker(key, pool):
     b1, b2, b3 = st.columns([1, 1, 3])
-    b1.button("全選択", key=f"all_{grade}", on_click=set_sel, args=(key, chars))
-    b2.button("全解除", key=f"none_{grade}", on_click=set_sel, args=(key, []))
+    b1.button("全選択", key=f"all_{key}", on_click=set_sel, args=(key, pool))
+    b2.button("全解除", key=f"none_{key}", on_click=set_sel, args=(key, []))
     if hasattr(st, "pills"):
-        sel = st.pills("使う漢字", chars, selection_mode="multi", key=key, label_visibility="collapsed")
+        sel = st.pills("使う漢字", pool, selection_mode="multi", key=key, label_visibility="collapsed")
     else:
-        sel = st.multiselect("使う漢字", chars, key=key, label_visibility="collapsed")
+        sel = st.multiselect("使う漢字", pool, key=key, label_visibility="collapsed")
     sel = sel or []
-    b3.caption(f"{grade}年生の漢字 {len(chars)}字のうち {len(sel)}字を選択中")
+    b3.caption(f"{len(pool)}字のうち {len(sel)}字を選択中")
     return sel
 
 
@@ -579,44 +851,65 @@ def main():
         publisher = c2.selectbox("教科書会社", PUBLISHERS)
         term = c3.selectbox("学期", TERMS)
         paper = c4.selectbox("用紙", list(PAPERS))
-        c5, c6 = st.columns([1, 3])
+        c5, c6, c7 = st.columns([1, 2, 2])
         n = c5.selectbox("問題数", COUNTS, index=1, format_func=lambda x: f"{x}問")
-        title = c6.text_input("プリント名", value=f"{grade}年 漢字小テスト")
+        size_opt = c6.selectbox("解答マスの大きさ", list(SIZES))
+        title = c7.text_input("プリント名", value=f"{grade}年 漢字小テスト")
         kind = st.radio("プリントの種類", KINDS, horizontal=True)
+        st.caption("解答マスは枠に収まる最大の大きさに自動調整されます。問題数が少ないほど大きくなるので、"
+                   "1年生などで大きくしたいときは問題数を減らしてください。")
 
-    with st.expander("🔤 使う漢字を選ぶ（学年別漢字配当表）", expanded=True):
-        how = st.radio("漢字の選び方", ["一覧から選ぶ", "学年の漢字からランダムに選ぶ"], horizontal=True)
-        selected = kanji_picker(grade) if how == "一覧から選ぶ" else []
-        if how != "一覧から選ぶ":
-            st.caption(f"{grade}年生の漢字 {len(GRADE_KANJI[grade])}字から、問題数に合わせてランダムに選びます。")
+    with st.expander("🔤 使う漢字を選ぶ（学年別漢字配当表・学期ごとの目安つき）", expanded=True):
+        c8, c9 = st.columns(2)
+        pick = c8.radio("漢字の選び方", PICK_MODES, horizontal=True)
+        rng_how = c9.radio("漢字の範囲", [RANGE_TERM, RANGE_UNTIL, RANGE_ALL])
+        pool = kanji_range(grade, term, rng_how)
+        st.caption(f"{grade}年生・{term}の範囲：{len(pool)}字（{grade}年生の漢字は全部で{len(GRADE_KANJI[grade])}字）。"
+                   "※学期ごとの新出漢字は教科書会社・学校によって違い、公的な割り当てはありません。"
+                   "ここでは画数の少ない順に3等分した目安で表示しています。実際の範囲と違うときは"
+                   "「学年すべて」から選んでください。")
+        selected = []
+        if pick == PICK_MODES[0]:
+            key = f"sel_{grade}_{TERMS.index(term)}_{[RANGE_TERM, RANGE_UNTIL, RANGE_ALL].index(rng_how)}"
+            st.session_state.setdefault(key, [])
+            selected = kanji_picker(key, pool)
 
-    with st.expander("📎 既存プリントを添付（任意）"):
-        up = st.file_uploader("txt / csv / docx / 画像 / PDF（問題をそのまま使います）",
+    with st.expander("📎 既存プリントを添付（任意・添付した場合はその問題を使います）"):
+        up = st.file_uploader("txt / csv / docx / 画像 / PDF",
                               type=["txt", "csv", "md", "docx", "png", "jpg", "jpeg", "pdf"])
         st.caption("txt・csv・docx は「【語|よみ】を含む文」または「語,よみ,例文」の形式で読み取ります。"
                    "画像・PDFは AI が読み取ります（APIキーが必要）。")
+        a1, a2 = st.columns(2)
+        order = a1.radio("問題の並び順", ORDERS)
+        count_mode = a2.radio("問題数", COUNT_MODES)
+        rewrite = st.checkbox("答える漢字はそのままで、文を毎回ランダムに作り変える（AI・APIキーが必要）")
+        st.caption("文の作り変えでも、答えの漢字・送り仮名・よみは元のプリントのまま変えません。"
+                   "学年は添付プリントの学年に合わせてください（文に使う漢字をその学年までに制限します）。")
+
+    ruby = kind in ("ルビ付き", "お助け＋ルビ")
 
     if st.button("✨ プリントを作成", type="primary"):
-        st.session_state["seed"] = random.randint(0, 10**6)
-        items, notes = None, []
+        seed = random.randint(0, 10**6)
+        st.session_state["seed"] = seed
+        items, notes, att = None, [], None
         if up is not None:
             try:
-                att = read_attachment(up)
-                if att:
-                    items = att[:n]
-                    notes.append(f"添付プリントから {len(att)} 問を読み取りました。")
-                else:
+                att = load_attachment(up)
+                if not att:
                     notes.append("添付プリントから問題を読み取れませんでした。")
             except Exception as ex:
                 notes.append(f"添付ファイルの読み取りに失敗しました: {ex}")
-        if items is None:
-            if how == "一覧から選ぶ" and not selected:
-                st.warning("使う漢字を1字以上選んでください。")
-            else:
-                with st.spinner("問題を作成中…（30秒〜1分ほどかかることがあります）"):
-                    items, nn = build_items(grade, selected, n, st.session_state["seed"],
-                                            how != "一覧から選ぶ")
-                notes += nn
+        if att:
+            with st.spinner("添付プリントから問題を作成中…"):
+                items, nn = build_from_attachment(att, n, count_mode == COUNT_MODES[0],
+                                                  order == ORDERS[1], rewrite, grade, seed, ruby)
+            notes += nn
+        elif pick == PICK_MODES[0] and not selected:
+            st.warning("使う漢字を1字以上選んでください。")
+        else:
+            with st.spinner("問題を作成中…（30秒〜1分ほどかかることがあります）"):
+                items, nn = build_items(grade, pool, selected, n, seed, pick != PICK_MODES[0])
+            notes += nn
         if items:
             st.session_state["items"] = items
         st.session_state["notes"] = notes
@@ -629,8 +922,9 @@ def main():
         st.caption("設定と漢字を選んで「プリントを作成」を押してください。")
         return
 
-    q_html = sheet_html(items, title, kind, False, publisher, term)
-    a_html = sheet_html(items, title, kind, True, publisher, term)
+    scale = SIZES[size_opt] or AUTO_SCALE[grade]
+    q_html = sheet_html(items, title, kind, False, publisher, term, scale)
+    a_html = sheet_html(items, title, kind, True, publisher, term, scale)
     w, h, _ = PAPERS[paper]
     page_px = int(h * 3.78) + 24
 
