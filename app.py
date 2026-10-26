@@ -672,6 +672,14 @@ function fit(){var s=document.querySelector('.sheet'),c=document.querySelector('
  if(!s||!s.offsetWidth)return;
  c.style.transform='none';var w=s.offsetWidth+16,k=Math.min(1,window.innerWidth/w);
  c.style.transform='scale('+k+')';}
+function openPrint(){
+ if(window.top===window){window.print();return;}
+ try{
+  var b=new Blob(['<!doctype html>'+document.documentElement.outerHTML],{type:'text/html'});
+  if(window.open(URL.createObjectURL(b),'_blank'))return;
+ }catch(e){}
+ try{window.print();}catch(e){}
+}
 function all(){fitSheets();fit();}
 window.addEventListener('load',all);window.addEventListener('resize',all);
 if(document.fonts&&document.fonts.ready){document.fonts.ready.then(all);}
@@ -803,9 +811,356 @@ def document_html(sheets, paper) -> str:
     css = CSS.replace("__W__", str(w)).replace("__H__", str(h)).replace("__PAPER__", size)
     return (f'<!doctype html><html lang="ja"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1"><style>{css}</style></head><body>'
-            f'<div class="toolbar"><button onclick="window.print()">🖨 共有・プリント</button>'
-            f'<span>{paper}・横向きで印刷（倍率100%／余白なし）</span></div>'
+            f'<div class="toolbar"><button onclick="openPrint()">🖨 共有・プリント</button>'
+            f'<span>{paper}・横向き（iPadは下の「PDFを保存」が確実です）</span></div>'
             f'<div class="scaler">{"".join(sheets)}</div><script>{JS}</script></body></html>')
+
+
+# ---------------------------------------------------------------------------
+# PDF出力（ReportLab）。iPad など、ブラウザの印刷が使いにくい環境向け。
+#   縦書きを1文字ずつ配置して描くので、どの端末でも同じ見た目・用紙サイズ（横向き）で出力できる。
+#   日本語フォント：app.py と同じ場所の fonts フォルダの .ttf → 環境変数 PDF_FONT_PATH →
+#   システムのIPAフォントなど → 見つからなければ PDF 標準の日本語フォント(HeiseiMin)を使う。
+# ---------------------------------------------------------------------------
+MM = 72 / 25.4
+PDF_PUNCT = "。、，．"
+PDF_SMALL = "ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ"
+PDF_ROT = "ー－—―…（）()「」『』【】〔〕[]〈〉《》＜＞<>"
+PDF_RED = (0.769, 0.0, 0.102)
+_PDF_FONT = {}
+
+
+def pdf_font_name() -> str:
+    if "n" in _PDF_FONT:
+        return _PDF_FONT["n"]
+    import glob
+    from pathlib import Path
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    cands = []
+    env = os.environ.get("PDF_FONT_PATH", "").strip()
+    if env:
+        cands.append(env)
+    try:
+        fdir = Path(__file__).resolve().parent / "fonts"
+        if fdir.is_dir():
+            cands += sorted(str(p) for p in fdir.iterdir() if p.suffix.lower() in (".ttf", ".ttc", ".otf"))
+    except Exception:
+        pass
+    for pat in ("ipaexm.ttf", "ipam.ttf", "ipaexg.ttf", "ipag.ttf", "Takao*.ttf"):
+        cands += sorted(glob.glob(f"/usr/share/fonts/**/{pat}", recursive=True))
+    for p in cands:
+        try:
+            pdfmetrics.registerFont(TTFont("JPFont", p))
+            _PDF_FONT["n"] = "JPFont"
+            return "JPFont"
+        except Exception:
+            continue
+    from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+    pdfmetrics.registerFont(UnicodeCIDFont("HeiseiMin-W3"))
+    _PDF_FONT["n"] = "HeiseiMin-W3"
+    return "HeiseiMin-W3"
+
+
+def pdf_units(text: str, ruby: bool):
+    """文を (表示文字列, ルビまたはNone) の部品に分ける（HTML版の text_units と同じ規則）"""
+    def plain(t):
+        out = []
+        for ch in t:
+            if out and ch in "。、，．）」』！？":
+                out[-1] += ch
+            else:
+                out.append(ch)
+        return [(u, None) for u in out]
+
+    res, pos = [], 0
+    for m in RUBY_RE.finditer(text):
+        res += plain(text[pos:m.start()])
+        res += [(m.group(1), m.group(2))] if ruby else plain(m.group(1))
+        pos = m.end()
+    res += plain(text[pos:])
+    return res
+
+
+def pdf_flow_items(e, num, ruby, answer, help_on, bx, fs, lh):
+    """1問を、縦に並べる部品（高さh・幅w、mm）のリストにする"""
+    rfs = fs * 0.5
+
+    def unit_items(text):
+        out = []
+        for base, rd in pdf_units(text, ruby):
+            h = max(len(base) * fs, (len(rd) * rfs if rd else 0.0))
+            out.append({"k": "u", "h": h, "w": fs * lh, "base": base, "rd": rd})
+        return out
+
+    pre, _, post = e["sentence"].partition("{W}")
+    items = [{"k": "no", "h": 6.6, "w": 5.4, "num": num}]
+    items += unit_items(pre)
+    word = e["word"]
+    n, ok = len(word), has_okurigana(word)
+    ah = (n * bx if ok else n * bx - (n - 1) * 0.4) + 1.2
+    items.append({"k": "ans", "h": ah, "w": bx + fs * 0.72, "e": e, "ok": ok})
+    items += unit_items(post)
+    if help_on and not answer:
+        hb = bx * 0.6
+        items.append({"k": "hint", "h": 0.8 + hb + 1.6, "w": hb + 1.6, "ch": word[0], "hb": hb})
+    return items
+
+
+def pdf_cell_lines(items, ch):
+    """下まで来たら左隣の列に折り返す（HTMLの flex-wrap と同じ）"""
+    lines, cur, hs = [], [], 0.0
+    for it in items:
+        if cur and hs + it["h"] > ch + 1e-6:
+            lines.append((cur, hs))
+            cur, hs = [], 0.0
+        cur.append(it)
+        hs += it["h"]
+    if cur:
+        lines.append((cur, hs))
+    return lines
+
+
+def pdf_fits(lines, cw, ch):
+    return (all(h <= ch + 1e-6 for _, h in lines)
+            and sum(max(i["w"] for i in ln) for ln, _ in lines) <= cw + 1e-6)
+
+
+def pdf_char(c, font, ch, cx, cy, size_mm, rgb=(0, 0, 0)):
+    """縦書きの1文字（cx, cy はセル中心のpt座標）"""
+    f = size_mm * MM
+    c.setFillColorRGB(*rgb)
+    c.setFont(font, f)
+    if ch in PDF_ROT:                       # 長音・括弧は90度回転
+        c.saveState()
+        c.translate(cx, cy)
+        c.rotate(-90)
+        c.drawCentredString(0, -0.36 * f, ch)
+        c.restoreState()
+        return
+    dx = dy = 0.0
+    if ch in PDF_PUNCT:                     # 句読点は右上へ
+        dx, dy = 0.55 * f, 0.60 * f
+    elif ch in PDF_SMALL:                   # 小さい仮名は少し右上へ
+        dx, dy = 0.10 * f, 0.10 * f
+    c.drawCentredString(cx + dx, cy - 0.36 * f + dy, ch)
+
+
+def pdf_vtext(c, font, text, cx_mm, y_mm, size_mm, H, spacing=0.0, rgb=(0, 0, 0), bold=False):
+    """縦書きの文字列。半角数字の連続は縦中横にする。終わりのy(mm)を返す"""
+    y = y_mm
+    for tok in re.findall(r"[0-9]+|.", text, re.S):
+        cy = (H - (y + size_mm / 2)) * MM
+        if tok.isascii() and tok.isdigit():
+            f = size_mm * 0.9 * MM
+            sx = min(1.0, size_mm * MM / (len(tok) * 0.56 * f))
+            c.saveState()
+            c.setFillColorRGB(*rgb)
+            c.setFont("Helvetica-Bold" if bold else "Helvetica", f)
+            c.translate(cx_mm * MM, cy - 0.36 * f)
+            c.scale(sx, 1)
+            c.drawCentredString(0, 0, tok)
+            c.restoreState()
+        else:
+            for d in ((-0.1, 0.0, 0.1) if bold else (0.0,)):
+                pdf_char(c, font, tok, (cx_mm + d) * MM, cy, size_mm, rgb)
+        y += size_mm + spacing
+    return y
+
+
+def pdf_draw_sheet(c, items, title, kind, answer, publisher, term, max_scale, paper):
+    font = pdf_font_name()
+    W, H, _ = PAPERS[paper]
+    help_on = kind in ("お助け（2画ヒント）", "お助け＋ルビ")
+    ruby = kind in ("ルビ付き", "お助け＋ルビ")
+    n = len(items)
+    counts, bx0, fs0 = layout_for(n)
+    rows, cols = len(counts), max(counts)
+    lh = 2.05 if ruby else 1.6
+
+    X = lambda v: v * MM
+    Y = lambda v: (H - v) * MM
+
+    def line(x1, y1, x2, y2):
+        c.line(X(x1), Y(y1), X(x2), Y(y2))
+
+    # ---- 問題エリア ----
+    qx0, qx1 = 6.0, W - 6.0 - 22.5 - 3.0
+    qy0, qy1 = 5.0, H - 5.0
+    cell_w, cell_h = (qx1 - qx0) / cols, (qy1 - qy0) / rows
+    cw, ch = cell_w - 2.0, cell_h - 2.4
+
+    def sizes(s):
+        return bx0 * s, fs0 * (s ** 0.6 if s <= 1 else 1 + (s - 1) * 0.2)
+
+    def build(s):
+        bx, fs = sizes(s)
+        return [pdf_flow_items(items[i], i + 1, ruby, answer, help_on, bx, fs, lh) for i in range(n)], bx, fs
+
+    def all_fit(s):
+        fl, _, _ = build(s)
+        return all(pdf_fits(pdf_cell_lines(f, ch), cw, ch) for f in fl)
+
+    s = max_scale
+    if not all_fit(s):                       # 画面（JS）と同じく、収まる最大の大きさを探す
+        lo, hi = 0.5, s
+        for _ in range(14):
+            mid = (lo + hi) / 2
+            if all_fit(mid):
+                lo = mid
+            else:
+                hi = mid
+        s = lo
+    flows, bx, fs = build(s)
+
+    c.setStrokeColorRGB(0.53, 0.53, 0.53)
+    c.setLineWidth(0.25 * MM)
+    line(qx0, qy0, qx1, qy0)
+    line(qx1, qy0, qx1, qy1)
+
+    def draw_item(it, cx, y):
+        k = it["k"]
+        if k == "no":
+            c.setStrokeColorRGB(0, 0, 0)
+            c.setLineWidth(0.3 * MM)
+            c.circle(X(cx), Y(y + 2.7), 2.7 * MM, stroke=1, fill=0)
+            f = 3.2 * MM * (1.0 if it["num"] < 10 else 0.8)
+            c.setFillColorRGB(0, 0, 0)
+            c.setFont("Helvetica", f)
+            c.drawCentredString(X(cx), Y(y + 2.7) - 0.36 * f, str(it["num"]))
+        elif k == "u":
+            base, rd = it["base"], it["rd"]
+            bcx = cx - (0.12 * fs if ruby else 0.0)
+            off = (it["h"] - len(base) * fs) / 2
+            for i, chh in enumerate(base):
+                pdf_char(c, font, chh, X(bcx), Y(y + off + (i + 0.5) * fs), fs)
+            if rd:
+                rfs = fs * 0.5
+                roff = (it["h"] - len(rd) * rfs) / 2
+                rx = bcx + 0.5 * fs + 0.5 * rfs + 0.08 * fs
+                for i, chh in enumerate(rd):
+                    pdf_char(c, font, chh, X(rx), Y(y + roff + (i + 0.5) * rfs), rfs)
+        elif k == "ans":
+            e, ok = it["e"], it["ok"]
+            word = e["word"]
+            n_ = len(word)
+            x0, y0 = cx - it["w"] / 2, y + 0.6
+            if not ok:
+                for i in range(n_):
+                    by = y0 + i * (bx - 0.4)
+                    c.setStrokeColorRGB(0.81, 0.81, 0.81)          # 補助線
+                    c.setLineWidth(0.2 * MM)
+                    line(x0 + bx / 2, by, x0 + bx / 2, by + bx)
+                    line(x0, by + bx / 2, x0 + bx, by + bx / 2)
+                    c.setStrokeColorRGB(0, 0, 0)
+                    c.setLineWidth(0.4 * MM)
+                    c.rect(X(x0), Y(by + bx), bx * MM, bx * MM, stroke=1, fill=0)
+                    if answer:
+                        pdf_char(c, font, word[i], X(x0 + bx / 2), Y(by + bx / 2), bx * 0.78, PDF_RED)
+            else:                                                  # 送り仮名あり：〔　〕
+                hh = n_ * bx
+                c.setStrokeColorRGB(0, 0, 0)
+                c.setLineWidth(0.45 * MM)
+                line(x0, y0, x0 + bx, y0)
+                line(x0, y0 + hh, x0 + bx, y0 + hh)
+                for xx in (x0, x0 + bx):
+                    line(xx, y0, xx, y0 + 2.6)
+                    line(xx, y0 + hh - 2.6, xx, y0 + hh)
+                if answer:
+                    for i in range(n_):
+                        pdf_char(c, font, word[i], X(x0 + bx / 2), Y(y0 + (i + 0.5) * bx), bx * 0.78, PDF_RED)
+            rd = e.get("reading") or ""
+            if rd:                                                 # よみ：枠の外（右）
+                rfs = fs * 0.62
+                bh = it["h"] - 1.2
+                ry = y0 + (bh - len(rd) * rfs) / 2
+                rx = x0 + it["w"] - rfs * 0.55
+                for i, chh in enumerate(rd):
+                    pdf_char(c, font, chh, X(rx), Y(ry + (i + 0.5) * rfs), rfs)
+        elif k == "hint":
+            hb = it["hb"]
+            bw = hb + 1.6
+            x0, y0 = cx - bw / 2, y + 0.8
+            c.setStrokeColorRGB(0.4, 0.4, 0.4)
+            c.setLineWidth(0.3 * MM)
+            c.setDash(1.2 * MM, 0.9 * MM)
+            c.roundRect(X(x0), Y(y0 + bw), bw * MM, bw * MM, 1.0 * MM, stroke=1, fill=0)
+            c.setDash()
+            ix, iy = x0 + 0.8, y0 + 0.8
+            p = c.beginPath()                                      # 左上だけ見せる（書き出しのヒント）
+            p.moveTo(X(ix), Y(iy))
+            p.lineTo(X(ix + 0.96 * hb), Y(iy))
+            p.lineTo(X(ix), Y(iy + 0.96 * hb))
+            p.close()
+            c.saveState()
+            c.clipPath(p, stroke=0, fill=0)
+            pdf_char(c, font, it["ch"], X(ix + hb / 2), Y(iy + hb / 2), hb * 0.83, (0.27, 0.27, 0.27))
+            c.restoreState()
+
+    idx = 0
+    for r, cnt in enumerate(counts):
+        for k in range(cnt):
+            xr, y_top = qx1 - k * cell_w, qy0 + r * cell_h
+            c.setStrokeColorRGB(0.53, 0.53, 0.53)
+            c.setLineWidth(0.25 * MM)
+            line(xr - cell_w, y_top, xr - cell_w, y_top + cell_h)
+            line(xr - cell_w, y_top + cell_h, xr, y_top + cell_h)
+            x_cursor = xr - 1.0
+            for ln, _hs in pdf_cell_lines(flows[idx], ch):
+                lw = max(i["w"] for i in ln)
+                y = y_top + 1.2
+                for it in ln:
+                    draw_item(it, x_cursor - lw / 2, y)
+                    y += it["h"]
+                x_cursor -= lw
+            idx += 1
+
+    # ---- 右端：テスト名／組・番／名前、説明・得点 ----
+    r1 = W - 6.0
+    l1 = r1 - 11.5
+    r2 = l1 - 1.5
+    l2 = r2 - 8.0
+    ttl = title + ("（解答）" if answer else "（100点満点）")
+    ts = 4.0 if len(ttl) > 20 else 5.0
+    if len(ttl) * (ts + 0.4) > 100:
+        ts = max(2.8, 100 / len(ttl) - 0.4)
+    y_end = pdf_vtext(c, font, ttl, r1 - ts * 2.1 / 2, 5.5, ts, H, 0.4, bold=True)
+
+    c.setStrokeColorRGB(0, 0, 0)
+    c.setLineWidth(0.4 * MM)
+    top = y_end + 2.0
+    c.rect(X(l1), Y(top + 36), 11.5 * MM, 36 * MM, stroke=1, fill=0)     # 組・番
+    gap = (36 - 0.8 - 2 * 7.4) / 3
+    pdf_vtext(c, font, "組", l1 + 5.75, top + 0.4 + gap + 1.2, 4.2, H)
+    pdf_vtext(c, font, "番", l1 + 5.75, top + 0.4 + gap + 7.4 + gap + 1.2, 4.2, H)
+    top2 = top + 36 + 2.0
+    c.rect(X(l1), Y(H - 5.0), 11.5 * MM, (H - 5.0 - top2) * MM, stroke=1, fill=0)   # 名前
+    pdf_vtext(c, font, "名前", l1 + 5.75, top2 + 0.4 + 1.2, 4.2, H, 0.8)
+
+    pts = f"{100 / n:.1f}".rstrip("0").rstrip(".")
+    desc = ("赤字が答えです。" if answer else f"文中の　線のひらがなを漢字で書きましょう。（1問{pts}点）")
+    text = f"{publisher}・{term}　{desc}"
+    ds = 3.2
+    avail = (H - 10.0) - 30.0 - 2.0
+    if len(text) * ds > avail:
+        ds = max(2.2, avail / len(text))
+    pdf_vtext(c, font, text, r2 - 3.2 * 1.7 / 2, 5.0, ds, H)
+    c.rect(X(l2), Y(H - 5.0), 8.0 * MM, 30.0 * MM, stroke=1, fill=0)    # 得点
+    pdf_vtext(c, font, "得点", l2 + 4.0, H - 5.0 - 30.0 + 1.0, 3.6, H)
+
+
+def build_pdf(items, title, kind, publisher, term, paper, max_scale=1.0, mode="both") -> bytes:
+    """mode: 'q'=問題 / 'a'=解答 / 'both'=問題＋解答。reportlab が無いと ImportError。"""
+    from reportlab.pdfgen import canvas
+    W, H, _ = PAPERS[paper]
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=(W * MM, H * MM))
+    c.setTitle(title)
+    for ans in {"q": [False], "a": [True], "both": [False, True]}[mode]:
+        pdf_draw_sheet(c, items, title, kind, ans, publisher, term, max_scale, paper)
+        c.showPage()
+    c.save()
+    return buf.getvalue()
 
 
 # ---------------------------------------------------------------------------
@@ -936,6 +1291,18 @@ def main():
     with tab_b:
         components.html(document_html([q_html, a_html], paper), height=page_px * 2 + 70, scrolling=True)
 
+    st.markdown("#### 📄 PDFにして保存・印刷（iPad向け）")
+    st.caption("PDFを「ファイル」に保存したり、共有ボタンからプリントできます。用紙は横向きで出力されます。")
+    try:
+        pdf_mode = st.radio("PDFの内容", ["問題＋解答", "問題のみ", "解答のみ"], horizontal=True)
+        mode = {"問題＋解答": "both", "問題のみ": "q", "解答のみ": "a"}[pdf_mode]
+        pdf = build_pdf(items, title, kind, publisher, term, paper, scale, mode)
+        st.download_button("📄 PDFを保存", pdf, file_name="kanji_test.pdf", mime="application/pdf",
+                           type="primary")
+    except ImportError:
+        st.warning("PDF出力には requirements.txt に reportlab の追加が必要です。")
+    except Exception as ex:
+        st.warning(f"PDFの作成に失敗しました: {ex}")
     st.download_button("📥 HTMLを保存（ブラウザで開いて印刷）",
                        document_html([q_html, a_html], paper),
                        file_name="kanji_test.html", mime="text/html")
